@@ -1,0 +1,23 @@
+CREATE PROCEDURE GetOrderDetails
+    @OrderID INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Check if records exist for the given OrderID
+    IF NOT EXISTS (
+        SELECT 1
+        FROM [Order Details]
+        WHERE OrderID = @OrderID
+    )
+    BEGIN
+        PRINT 'The OrderID ' + CAST(@OrderID AS VARCHAR) + ' does not exist';
+        RETURN 1;
+    END
+
+    -- Return all order details for the given OrderID
+    SELECT *
+    FROM [Order Details]
+    WHERE OrderID = @OrderID;
+END;
+

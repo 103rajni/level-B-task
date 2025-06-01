@@ -1,0 +1,14 @@
+CREATE VIEW vwCustomerOrders AS
+SELECT 
+    C.CompanyName,
+    O.OrderID,
+    O.OrderDate,
+    OD.ProductID,
+    P.ProductName,
+    OD.Quantity,
+    OD.UnitPrice,
+    OD.Quantity * OD.UnitPrice AS TotalPrice
+FROM Orders O
+JOIN Customers C ON O.CustomerID = C.CustomerID
+JOIN [Order Details] OD ON O.OrderID = OD.OrderID
+JOIN Products P ON OD.ProductID = P.ProductID;

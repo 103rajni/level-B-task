@@ -1,0 +1,16 @@
+CREATE FUNCTION fn_FormatDateYYYYMMDD
+(
+    @InputDate DATETIME
+)
+RETURNS VARCHAR(8)
+AS
+BEGIN
+    DECLARE @FormattedDate VARCHAR(8);
+
+    -- Format the date as YYYYMMDD
+    SET @FormattedDate = CAST(YEAR(@InputDate) AS VARCHAR) +
+                         RIGHT('0' + CAST(MONTH(@InputDate) AS VARCHAR), 2) +
+                         RIGHT('0' + CAST(DAY(@InputDate) AS VARCHAR), 2);
+
+    RETURN @FormattedDate;
+END;

@@ -1,0 +1,19 @@
+CREATE TRIGGER trg_InsteadOfDeleteOrders
+ON Orders
+INSTEAD OF DELETE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Delete related Order Details first
+    DELETE OD
+    FROM [Order Details] OD
+    INNER JOIN deleted D ON OD.OrderID = D.OrderID;
+
+    -- Then delete the Order
+    DELETE O
+    FROM Orders O
+    INNER JOIN deleted D ON O.OrderID = D.OrderID;
+
+    PRINT 'Order and its details deleted successfully.';
+END;

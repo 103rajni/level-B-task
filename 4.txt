@@ -1,0 +1,25 @@
+CREATE PROCEDURE DeleteOrderDetails
+    @OrderID INT,
+    @ProductID INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Validate if the given OrderID and ProductID exist together in the table
+    IF NOT EXISTS (
+        SELECT 1 
+        FROM [Order Details]
+        WHERE OrderID = @OrderID AND ProductID = @ProductID
+    )
+    BEGIN
+        PRINT 'Invalid OrderID or ProductID. No matching order detail found.';
+        RETURN -1;
+    END
+
+    -- Delete the record
+    DELETE FROM [Order Details]
+    WHERE OrderID = @OrderID AND ProductID = @ProductID;
+
+    PRINT 'Order detail deleted successfully.';
+    RETURN 0; -- success
+END;

@@ -1,0 +1,42 @@
+CREATE TRIGGER trg_CheckStockBeforeInsert
+ON [Order Details]
+INSTEAD OF INSERT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @ProductID INT, @Quantity SMALLINT, @OrderID INT;
+
+    SELECT @ProductID = ProductID, @Quantity = Quantity, @OrderID = OrderID
+    FROM inserted;
+
+    DECLARE @Stock INT;
+
+    SELECT @Stock = UnitsInStock
+    FROM Products
+    WHERE ProductID = @ProductID;
+
+    IF @Stock IS NULL
+    BEGIN
+        PRINT 'Invalid ProductID.';
+        RETURN;
+    END
+
+    IF @Stock < @Quantity
+    BEGIN
+        PRINT 'Order could not be placed: insufficient stock.';
+        RETURN;
+    END
+
+    -- Insert order detail
+    INSERT INTO [Order Details](OrderID, ProductID, UnitPrice, Quantity, Discount)
+    SELECT OrderID, ProductID, UnitPrice, Quantity, Discount
+    FROM inserted;
+
+    -- Update product stock
+    UPDATE Products
+    SET UnitsInStock = UnitsInStock - @Quantity
+    WHERE ProductID = @ProductID;
+
+    PRINT 'Order placed and stock updated.';
+END;

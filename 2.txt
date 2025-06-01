@@ -1,0 +1,59 @@
+CREATE PROCEDURE UpdateOrderDetails
+    @OrderID INT,
+    @ProductID INT,
+    @UnitPrice MONEY = NULL,
+    @Quantity SMALLINT = NULL,
+    @Discount REAL = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @OldUnitPrice MONEY,
+            @OldQuantity SMALLINT,
+            @OldDiscount REAL,
+            @NewUnitPrice MONEY,
+            @NewQuantity SMALLINT,
+            @NewDiscount REAL,
+            @StockChange INT;
+
+    -- Get current values from Order Details
+    SELECT 
+        @OldUnitPrice = UnitPrice,
+        @OldQuantity = Quantity,
+        @OldDiscount = Discount
+    FROM [Order Details]
+    WHERE OrderID = @OrderID AND ProductID = @ProductID;
+
+    IF @OldUnitPrice IS NULL
+    BEGIN
+        PRINT 'Invalid OrderID or ProductID';
+        RETURN;
+    END
+
+    -- Assign new values or keep old ones if NULL passed
+    SET @NewUnitPrice = ISNULL(@UnitPrice, @OldUnitPrice);
+    SET @NewQuantity = ISNULL(@Quantity, @OldQuantity);
+    SET @NewDiscount = ISNULL(@Discount, @OldDiscount);
+
+    -- Calculate stock adjustment
+    SET @StockChange = @OldQuantity - @NewQuantity;
+
+    BEGIN TRANSACTION;
+
+    -- Update Order Details
+    UPDATE [Order Details]
+    SET 
+        UnitPrice = @NewUnitPrice,
+        Quantity = @NewQuantity,
+        Discount = @NewDiscount
+    WHERE OrderID = @OrderID AND ProductID = @ProductID;
+
+    -- Adjust UnitsInStock in Products
+    UPDATE Products
+    SET UnitsInStock = UnitsInStock + @StockChange
+    WHERE ProductID = @ProductID;
+
+    COMMIT;
+
+    PRINT 'Order details updated successfully.';
+END;
